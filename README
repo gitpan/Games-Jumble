@@ -1,4 +1,4 @@
-Games/Jumble version 0.02
+Games/Jumble version 0.03
 ================================
 SYNOPSIS
 
@@ -8,7 +8,7 @@ SYNOPSIS
    $jumble->num_words(6);
    $jumble->dict('/home/doug/crossword_dict/unixdict.txt');
   
-   my @jumble = $jumble->create_puzzle; 
+   my @jumble = $jumble->create_jumble; 
 
    foreach my $word (@jumble) {
       print "$word\n";
@@ -76,6 +76,10 @@ A man file should be created in the installation process.
 CHANGES
 
 See the Changes file.
+
+CREDITS
+
+Tim Maher for pointing out some outdated documentation in the Synopsis.
 
 AUTHOR
 
