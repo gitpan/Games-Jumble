@@ -3,6 +3,7 @@ Revision history for Perl extension Games::Jumble.
 0.01  Mon Apr  1 12:31:32 2002
 	- original version; created by h2xs 1.21 with options
 		-X -A -n Games::Jumble
+
 0.02  Sat Apr  6 08:01:12 2002
         - Added jumble_word() method
         - Renamed create_puzzle() method to create_jumble()
@@ -20,3 +21,8 @@ Revision history for Perl extension Games::Jumble.
 
 0.06  Sun Apr 13 12:02:57 2003 
         - Updated typo in documentation
+
+0.07  Wed Apr 16 09:04:36 2003 
+        - Added solve_crossword() method
+        - Fixed bug in solve_word - Now will accept upper- 
+          and lower-case words

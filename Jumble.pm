@@ -8,7 +8,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 sub new {
     my $proto = shift;
@@ -171,7 +171,7 @@ sub solve_word {
     my @good_words;
    
     if(@_) { 
-        $self->{word} = shift;
+        $self->{word} = lc(shift);
     } else {
         croak "No word to solve\n";
     }
@@ -180,7 +180,7 @@ sub solve_word {
     @temp_array = sort(@temp_array);
     $self->{key} = join('', @temp_array);
 
-    # Read dictionary and get five- and six-letter words
+    # Read dictionary and get words same length as $self->{word}
     open FH, $self->{dict} or croak "Cannot open $self->{dict}: $!";
     while(<FH>) {
         chomp;
@@ -202,6 +202,39 @@ sub solve_word {
 
     return @good_words;
 }
+
+sub solve_crossword {
+
+    my($self) = shift;
+    my @good_words;
+   
+    if(@_) { 
+        $self->{word} = lc(shift);
+    } else {
+        croak "No word to solve\n";
+    }
+    
+    # Set regex
+    ($self->{word_regex} = $self->{word}) =~ s/\?/\\w{1}/g;
+
+    # Read dictionary and get all words same length as $self->{word}
+    open FH, $self->{dict} or croak "Cannot open $self->{dict}: $!";
+    while(<FH>) {
+        chomp;
+        my $word = lc $_;             # Lower case all words
+        next if $word !~ /^[a-z]+$/;  # Letters only
+        next if length($word) ne length($self->{word});
+
+        if ($word =~ $self->{word_regex}) {
+            push @good_words, $word;
+        }
+       
+    }
+    close FH;
+
+    return @good_words;
+}
+
 
 1;
 
@@ -316,15 +349,22 @@ Note: Deny none is designated by empty hash.
 This method creates the jumble.
 Returns list containing words (normal and jumbled).
 
+=item jumble_word ( WORD )
+
+This method will create a jumbled word.
+Returns scalar containing jumbled word.
+
 =item solve_word ( WORD )
 
 This method will solve a jumbled word.
 Returns list of solved words.
 
-=item jumble_word ( WORD )
+=item solve_crossword ( WORD )
 
-This method will create a jumbled word.
-Returns scalar containing jumbled word.
+This method will solve an incomplete word as needed for a crossword.
+WORD format: 'c?m?l' where question marks are used a placeholders
+for unknown letter.
+Returns list of solved words.
 
 =back
 

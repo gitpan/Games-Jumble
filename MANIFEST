@@ -8,3 +8,4 @@ TODO
 examples/jumble_create.pl
 examples/jumble_solve.pl
 examples/jumble_word.pl
+examples/crossword_solve.pl
