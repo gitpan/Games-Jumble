@@ -1,4 +1,4 @@
-Games/Jumble version 0.05
+Games/Jumble version 0.06
 ================================
 SYNOPSIS
 
@@ -6,7 +6,7 @@ SYNOPSIS
 
    my $jumble = Games::Jumble->new;
    $jumble->num_words(6);
-   $jumble->allow(5,6);
+   $jumble->word_length_allow(5,6);
    $jumble->dict('/home/doug/crossword_dict/unixdict.txt');
   
    my @jumble = $jumble->create_jumble; 

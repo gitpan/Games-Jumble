@@ -8,7 +8,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 sub new {
     my $proto = shift;
@@ -217,6 +217,7 @@ Games::Jumble - Create and solve Jumble word puzzles.
 
   my $jumble = Games::Jumble->new();
   $jumble->num_words(6);
+  $jumble->word_length_allow(5,6);
   $jumble->dict('/home/doug/crossword_dict/unixdict.txt');
 
   my @jumble = $jumble->create_jumble;

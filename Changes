@@ -18,3 +18,5 @@ Revision history for Perl extension Games::Jumble.
         - Disallowed words with single character (ii,ooo,etc)
         - Added check that jumbled word is actually jumbled
 
+0.06  Sun Apr 13 12:02:57 2003 
+        - Updated typo in documentation
