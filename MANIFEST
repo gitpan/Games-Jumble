@@ -1,0 +1,9 @@
+Changes
+Jumble.pm
+Makefile.PL
+MANIFEST
+README
+test.pl
+TODO
+examples/jumble_create.pl
+examples/jumble_solve.pl
