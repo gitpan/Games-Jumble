@@ -8,7 +8,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 sub new {
     my $proto = shift;
@@ -21,7 +21,6 @@ sub new {
         $self->{num_words} = 5;
     }
     $self->{dict}   = '/usr/dict/words';
-    $self->{dict_type} = 'dict';
 
     bless($self, $class);
     return $self;
@@ -119,6 +118,7 @@ sub create_jumble {
     for (1..$self->{num_words}) {
 
             my $el = $unique_words[rand @unique_words];
+            redo if $el =~ /(\w)\1+/;  # No words like ii, ooo or aaa
             push(@jumble, $el);
     }
 
@@ -149,12 +149,17 @@ sub jumble_word {
 
     # From the camel
     my $array = \@temp_array;
-    for (my $i = @$array; --$i; ) {
-        my $j = int rand ($i+1);
-        next if $i == $j;
-        @$array[$i,$j] = @$array[$j,$i];
+    my $jumbled_word = $word;
+
+    # Make sure we actually scramble the word
+    while( $jumbled_word eq $word ) {
+        for (my $i = @$array; --$i; ) {
+            my $j = int rand ($i+1);
+            next if $i == $j;
+            @$array[$i,$j] = @$array[$j,$i];
+        }
+        $jumbled_word = join('', @temp_array);
     }
-    my $jumbled_word = join('', @temp_array);
 
     return $jumbled_word;
 

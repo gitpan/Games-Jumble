@@ -14,3 +14,7 @@ Revision history for Perl extension Games::Jumble.
         - Added word_length_allow() method
         - Added word_length_deny() method
 
+0.05  Sat Apr 12 14:31:22 2003 
+        - Disallowed words with single character (ii,ooo,etc)
+        - Added check that jumbled word is actually jumbled
+
