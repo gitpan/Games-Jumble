@@ -7,3 +7,10 @@ Revision history for Perl extension Games::Jumble.
         - Added jumble_word() method
         - Renamed create_puzzle() method to create_jumble()
 
+0.03  Sat Nov 25 07:14:43 2002
+        - Updated documentation
+
+0.04  Sat Apr 12 12:12:52 2003 
+        - Added word_length_allow() method
+        - Added word_length_deny() method
+

@@ -1,6 +1,6 @@
-# Copyright (c) 2001 Douglas Sparling. All rights reserved. This program is free
-# software; you can redistribute it and/or modify it under the same terms
-# as Perl itself.
+# Copyright (c) 2001-2003 Douglas Sparling. All rights reserved. 
+# This program is free software; you can redistribute it and/or
+# modify it under the same terms as Perl itself.
 
 package Games::Jumble;
 
@@ -8,7 +8,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 sub new {
     my $proto = shift;
@@ -39,21 +39,39 @@ sub dict {
     return $self->{dict};
 }
 
-sub dict_type {
+sub word_length_allow {
     my($self) = shift;
-    if(@_) { $self->{dict_type} = shift }
-    return $self->{dict_type};
+    if(@_) { 
+        my %allowed;
+        foreach my $allow( @_ ) {
+            $allowed{$allow}++; 
+        }
+        $self->{word_length_allow} = \%allowed;
+    }
+    return $self->{word_length_allow};
 }
+
+sub word_length_deny {
+    my($self) = shift;
+    if(@_) { 
+        my %denied;
+        foreach my $deny( @_ ) {
+            $denied{$deny}++; 
+        }
+        $self->{word_length_deny} = \%denied;
+    }
+    return $self->{word_length_deny};
+}
+
 
 sub create_jumble {
 
     my($self) = shift;
     my @jumble;
     my @jumble_out;
-    my %five_letter_words;
-    my %six_letter_words;
+    my %words;
 
-    # Read dictionary and get five- and six-letter words
+    # Read dictionary and get words
     open FH, $self->{dict} or croak "Cannot open $self->{dict}: $!";
     while(<FH>) {
         chomp;
@@ -65,46 +83,43 @@ sub create_jumble {
         @temp_array = sort(@temp_array);
         my $key = join('', @temp_array);
 
-        push @{$five_letter_words{$key}}, $_ if length $_ == 5;
-        push @{$six_letter_words{$key}}, $_  if length $_ == 6;
+        # Check for word length allow
+        if( $self->{word_length_allow} ) {
+            my $allowed_ref = $self->{word_length_allow};
+            my %allowed = %$allowed_ref;
+            next unless exists $allowed{length $_};
+        }
+
+        # Check for word length deny 
+        if( $self->{word_length_deny} ) {
+            my $denied_ref = $self->{word_length_deny};
+            my %denied = %$denied_ref;
+            next if exists $denied{length $_};
+        }
+
+        # perlreftut is your friend
+        push @{$words{$key}}, $_;
        
     }
     close FH;
 
     # Get words that only "unjumble" one way
-    my @unique_five_letter_words;
-    my @unique_six_letter_words;
+    my @unique_words;
 
-    foreach my $word (keys %five_letter_words) {
-        my $length = @{$five_letter_words{$word}};
+    foreach my $word (keys %words) {
+        my $length = @{$words{$word}};
         if ($length == 1) {
-            push @unique_five_letter_words, @{$five_letter_words{$word}};
+            push @unique_words, @{$words{$word}};
         }
     }
-    @unique_five_letter_words = sort @unique_five_letter_words;
+    @unique_words = sort @unique_words;
 
-    foreach my $word (keys %six_letter_words) {
-        my $length = @{$six_letter_words{$word}};
-        if ($length == 1) {
-            push @unique_six_letter_words, @{$six_letter_words{$word}};
-        }
-    }
 
     # Get random words for jumble
     for (1..$self->{num_words}) {
-        my $length = int(rand(7));
-        until ($length == 5 or $length == 6) {
-            $length = int(rand(7));
-        }
 
-        # Randomly select five- and six-character words.
-        if ($length == 5) {
-            my $el = $unique_five_letter_words[rand @unique_five_letter_words];
+            my $el = $unique_words[rand @unique_words];
             push(@jumble, $el);
-        } elsif ($length == 6) {
-            my $el = $unique_six_letter_words[rand @unique_six_letter_words];
-            push(@jumble, $el);
-        }
     }
 
     # Scramble the words
@@ -274,20 +289,36 @@ the dictionary file. Dictionary file must have one word per line.
 The default value is /usr/dict/words. 
 The path to the dictionary file is returned. 
 
+=item word_length_allow ( LENGTH1 [, LENGTH2, LENGTH3,...] )
+
+If C<LENGTHx> is(are) passed, this method will set word lengths 
+that will be used when creating jumble.  
+The default setting will use all word lengths. 
+A hash containing all allow values is returned. 
+Note: Allow all is designated by empty hash.
+
+=item word_length_deny ( LENGTH1 [, LENGTH2, LENGTH3,...] )
+
+If C<LENGTHx> is(are) passed, this method will set word lengths 
+that will be skipped when creating jumble.
+The default setting will not skip any word lengths. 
+A hash containing all deny values is returned. 
+Note: Deny none is designated by empty hash.
+
 =item create_jumble ( )
 
 This method creates the jumble.
-Returns array containing words (normal and jumbled).
+Returns list containing words (normal and jumbled).
 
 =item solve_word ( WORD )
 
 This method will solve a jumbled word.
-Returns solved word.
+Returns list of solved words.
 
 =item jumble_word ( WORD )
 
 This method will create a jumbled word.
-Returns jumbled word.
+Returns scalar containing jumbled word.
 
 =back
 
@@ -301,7 +332,7 @@ Doug Sparling, doug@dougsparling.com
 
 =head1 COPYRIGHT
 
-Copyright (c) 2001-2002 Douglas Sparling. All rights reserved. This program is 
+Copyright (c) 2001-2003 Douglas Sparling. All rights reserved. This program is 
 free software; you can redistribute it and/or modify it under the same terms
 as Perl itself.
 

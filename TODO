@@ -5,6 +5,7 @@ TODO
  - Add functionality so that there is a master clue
    and each jumbled word will contain one or more letters
    that will make up the master clue.
+ - Check that jumbled word isn't returned unjumbled.
  - Allow user to select number of letters per word.
  - Allow user to select number of master clue letters per word.
  - Improve documentation.
