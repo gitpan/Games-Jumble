@@ -1,4 +1,4 @@
-Games/Jumble version 0.01
+Games/Jumble version 0.02
 ================================
 SYNOPSIS
 
@@ -14,6 +14,7 @@ SYNOPSIS
       print "$word\n";
    }
 
+   # Solve jumbled word
    my @good_words = $jumble->solve_word('rta');
 
    if (@good_words) {
@@ -24,16 +25,27 @@ SYNOPSIS
       print "No words found\n";
    }
 
+   # Create jumbled word
+   my $word = 'camel';
+   my $jumbled_word = $jumble->jumble_word($word);
+
+   print "$jumbled_word ($word)\n";
+
 
 DESCRIPTION
 
-Creates words (normal and jumbled) for jumble word game. 
-Games::Jumble can also be used to solve jumbled words.
+Games::Jumble is used to create and solve Jumble word puzzle.
+
+Currently Games::Jumble will create random five- and six-letter 
+jumbled words from a dictionary. Future versions of Games::Jumble will 
+allow user to create custom jumbles by using a user defined word file
+with words of any length.
+Individual words of any length may be jumbled by using the 
+jumble_word() method.
 
 Default number of words is 5.
 Default dictionary is '/usr/dict/words'.
-Use your own dictionary or word file to create custom puzzles.
-Dictionary or word file must contain one word per line.
+Dictionary file must contain one word per line.
 
 REQUIREMENTS
 

@@ -3,4 +3,7 @@ Revision history for Perl extension Games::Jumble.
 0.01  Mon Apr  1 12:31:32 2002
 	- original version; created by h2xs 1.21 with options
 		-X -A -n Games::Jumble
+0.02  Sat Apr  6 08:01:12 2002
+        - Added jumble_word() method
+        - Renamed create_puzzle() method to create_jumble()
 

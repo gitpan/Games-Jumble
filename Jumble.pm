@@ -8,7 +8,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 sub new {
     my $proto = shift;
@@ -21,6 +21,7 @@ sub new {
         $self->{num_words} = 5;
     }
     $self->{dict}   = '/usr/dict/words';
+    $self->{dict_type} = 'dict';
 
     bless($self, $class);
     return $self;
@@ -38,7 +39,13 @@ sub dict {
     return $self->{dict};
 }
 
-sub create_puzzle {
+sub dict_type {
+    my($self) = shift;
+    if(@_) { $self->{dict_type} = shift }
+    return $self->{dict_type};
+}
+
+sub create_jumble {
 
     my($self) = shift;
     my @jumble;
@@ -56,7 +63,7 @@ sub create_puzzle {
         # Sort letters so we can check for unique "unjumble"
         my @temp_array = split(//, $word);
         @temp_array = sort(@temp_array);
-        my $key = join('', @temp_array); #TEST
+        my $key = join('', @temp_array);
 
         push @{$five_letter_words{$key}}, $_ if length $_ == 5;
         push @{$six_letter_words{$key}}, $_  if length $_ == 6;
@@ -102,20 +109,39 @@ sub create_puzzle {
 
     # Scramble the words
     foreach my $word (@jumble) {
-        my @temp_array = split(//, $word);
-        # From the camel
-        my $array = \@temp_array;
-        for (my $i = @$array; --$i; ) {
-            my $j = int rand ($i+1);
-            next if $i == $j;
-            @$array[$i,$j] = @$array[$j,$i];
-        }
-        my $scrambled_word = join('', @temp_array);
-        push @jumble_out, "$scrambled_word ($word)";
+        my $jumbled_word = $self->jumble_word($word);
+        push @jumble_out, "$jumbled_word ($word)";
     }
 
     return @jumble_out;
 
+
+}
+
+sub jumble_word {
+
+    my($self) = shift;
+    my $word;
+
+    if(@_) { 
+        $word = shift;
+    } else {
+        $word = undef;
+        return $word;
+    }
+
+    my @temp_array = split(//, $word);
+
+    # From the camel
+    my $array = \@temp_array;
+    for (my $i = @$array; --$i; ) {
+        my $j = int rand ($i+1);
+        next if $i == $j;
+        @$array[$i,$j] = @$array[$j,$i];
+    }
+    my $jumbled_word = join('', @temp_array);
+
+    return $jumbled_word;
 
 }
 
@@ -163,7 +189,7 @@ __END__
 
 =head1 NAME
 
-Games::Jumble - Create Jumble word puzzles.
+Games::Jumble - Create and solve Jumble word puzzles.
 
 =head1 SYNOPSIS
 
@@ -179,6 +205,7 @@ Games::Jumble - Create Jumble word puzzles.
     print "$word\n";
   }
 
+  # Solve jumbled word
   my @good_words = $jumble->solve_word('rta');
 
   if (@good_words) {
@@ -189,14 +216,27 @@ Games::Jumble - Create Jumble word puzzles.
     print "No words found\n";
   }
 
+  # Create jumbled word
+  my $word = 'camel';
+  my $jumbled_word = $jumble->jumble_word($word);
+
+  print "$jumbled_word ($word)\n";
+
+
 =head1 DESCRIPTION
 
 C<Games::Jumble> is used to create and solve Jumble word puzzles.
 
+Currently C<Games::Jumble> will create random five- and six-letter
+jumbled words from dictionary. Future versions of C<Games::Jumble> will
+allow user to create custom jumbles by using a user defined word file
+with words of any length.
+Individual words of any length may be jumbled by using the 
+C<jumble_word()> method.
+
 Default number of words is 5.
 Default dictionary is '/usr/dict/words'.
-Use your own dictionary or word file to create custom puzzles.
-Dictionary or word file must contain one word per line.
+Dictionary file must contain one word per line.
 
 =head1 OVERVIEW
 
@@ -234,15 +274,20 @@ the dictionary file. Dictionary file must have one word per line.
 The default value is /usr/dict/words. 
 The path to the dictionary file is returned. 
 
-=item create_puzzle ( )
+=item create_jumble ( )
 
-Method that creates the jumble.
+This method creates the jumble.
 Returns array containing words (normal and jumbled).
 
 =item solve_word ( WORD )
 
 This method will solve a jumbled word.
-Returns array containing valid words.
+Returns solved word.
+
+=item jumble_word ( WORD )
+
+This method will create a jumbled word.
+Returns jumbled word.
 
 =back
 

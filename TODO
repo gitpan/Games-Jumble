@@ -1,11 +1,13 @@
 TODO
 
+ - Add ability to create custom puzzles by using
+   user defined word files.
  - Add functionality so that there is a master clue
    and each jumbled word will contain one or more letters
    that will make up the master clue.
  - Allow user to select number of letters per word.
  - Allow user to select number of master clue letters per word.
- - Add ability to jumble single words.
  - Improve documentation.
  - Move dictionary read to separate method.
  - Add cgi script to examples.
+ - Add real test.

@@ -3,11 +3,9 @@ use strict;
 use Games::Jumble;
 
 my $jumble = Games::Jumble->new;
-$jumble->num_words(6);
 $jumble->dict('/home/doug/crossword_dict/unixdict.txt');
 
-my @jumble = $jumble->create_jumble;
+my $word = 'camel';
+my $jumbled_word = $jumble->jumble_word($word);
 
-foreach my $word (@jumble) {
-    print "$word\n";
-}
+print "$jumbled_word ($word)\n";
