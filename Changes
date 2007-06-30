@@ -1,5 +1,13 @@
 Revision history for Games-Jumble
 
+0.09   Sat Jun 30 20:53:45 UTC 2007
+       Use AUTOLOAD for getters/setters
+       Changed some function names - not backwards compatible
+       num_words => get_num_words, set_num_words
+       dict => get_dict, set_dict
+       word_length_allow => set_word_lengths_allowed
+       word_lenth_deny => set_word_lengths_not_allowed
+
 0.08   Sat Jun 30 15:21:25 UTC 2007
        Used module-starter to rebuild package
        Minor house cleaning...

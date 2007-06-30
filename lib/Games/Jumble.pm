@@ -3,6 +3,7 @@ package Games::Jumble;
 use warnings;
 use strict;
 use Carp;
+use vars qw($VERSION $AUTOLOAD);
 
 =head1 NAME
 
@@ -10,20 +11,21 @@ Games::Jumble - Create and solve Jumble word puzzles.
 
 =head1 VERSION
 
-Version 0.08
+Version 0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 SYNOPSIS
 
     use Games::Jumble;
 
     my $jumble = Games::Jumble->new();
-    $jumble->num_words(6);
-    $jumble->word_length_allow(5,6);
-    $jumble->dict('/home/doug/crossword_dict/unixdict.txt');
+    $jumble->set_num_words(6);
+    $jumble->set_word_lengths_allowed(5,6);
+    $jumble->set_word_lengths_not_allowed(7,8);
+    $jumble->set_dict('/home/doug/crossword_dict/unixdict.txt');
 
     my @jumble = $jumble->create_jumble;
 
@@ -65,100 +67,111 @@ Dictionary file must contain one word per line.
 
 =cut
 
-=head2 new ( [NUMBER_OF_WORDS] );
+{
+    # Encapsulated data
+    my %_attr_data =              #    DEFAULT               ACCESSIBILITY
+      (
+        _num_words                => [ 5,                    'read/write' ],
+        _dict                     => [ '/usr/dict/words',    'read/write' ],
+        _word_lengths_allowed     => [ '',                   'read' ],
+        _word_lengths_not_allowed => [ '',                   'read' ],
+      );
+
+    # Class methods, to operate on encapsulated class data
+    sub _accessible {
+        my ( $self, $attr, $mode ) = @_;
+        $_attr_data{$attr}[1] =~ /$mode/;
+    }
+
+    # Classwide efault value for a specified object attribute
+    sub _default_for {
+        my ( $self, $attr ) = @_;
+        $_attr_data{$attr}[0];
+    }
+
+    # List of names of all specified object attributes
+    sub _standard_keys {
+        keys %_attr_data;
+    }
+}
+
+=head2 new
 
 This is the constructor for a new Games::Jumble object. 
-If C<NUMBER_OF_WORDS> is passed, this method will set the number of words for the puzzle.
+
+my $jumble = Games::Jumble->new();
+
+If C<num_words> is passed, this method will set the number of words for the puzzle, otherwise number of words is set to default value of 5.
+
+my $jumble = Games::Jumble->new(num_words=>$num_words);
 
 =cut
 
 sub new {
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self = {};
-
-    if (defined $_[0]) {
-        $self->{num_words} = $_[0];
-    } else {
-        $self->{num_words} = 5;
+    my ( $caller, %arg ) = @_;
+    my $caller_is_obj = ref($caller);
+    my $class         = $caller_is_obj || $caller;
+    my $self          = bless {}, $class;
+    foreach my $attrname ( $self->_standard_keys() ) {
+        my ($argname) = ( $attrname =~ /^_(.*)/ );
+        if ( exists $arg{$argname} ) {
+            $self->{$attrname} = $arg{$argname};
+        }
+        elsif ($caller_is_obj) {
+            $self->{$attrname} = $caller->{$attrname};
+        }
+        else {
+            $self->{$attrname} = $self->_default_for($attrname);
+        }
     }
-    $self->{dict}   = '/usr/dict/words';
-
-    bless($self, $class);
     return $self;
 }
 
-=head2 num_words ( NUMBER_OF_WORDS )
+sub DESTROY {
 
-If C<NUMBER_OF_WORDS> is passed, this method will set the number of words for the puzzle.
-The default value is 5. 
-The number of words is returned. 
-
-=cut
-
-sub num_words {
-    my($self) = shift;
-    if(@_) { $self->{num_words} = shift }
-    return $self->{num_words};
+    # This space deliberately left blank
 }
 
-=head2 dict ( PATH_TO_DICT )
+# Non autoloaded methods here
 
-If C<PATH_TO_DICT> is passed, this method will set the path to 
-the dictionary file. Dictionary file must have one word per line.
-The default value is /usr/dict/words. 
-The path to the dictionary file is returned. 
+=head2 set_word_lengths_allowed ( length1 [, length2, length3,...] )
 
-=cut
-
-sub dict {
-    my($self) = shift;
-    if(@_) { $self->{dict} = shift }
-    return $self->{dict};
-}
-
-=head2 word_length_allow ( LENGTH1 [, LENGTH2, LENGTH3,...] )
-
-If C<LENGTHx> is(are) passed, this method will set word lengths 
+If C<lengthx> is(are) passed, this method will set word lengths 
 that will be used when creating jumble.  
 The default setting will use all word lengths. 
-A hash containing all allow values is returned. 
 Note: Allow all is designated by empty hash.
 
 =cut
 
-sub word_length_allow {
+sub set_word_lengths_allowed {
     my($self) = shift;
     if(@_) { 
         my %allowed;
         foreach my $allow( @_ ) {
             $allowed{$allow}++; 
         }
-        $self->{word_length_allow} = \%allowed;
+        $self->{_word_lengths_allowed} = \%allowed;
     }
-    return $self->{word_length_allow};
 }
 
-=head2 word_length_deny ( LENGTH1 [, LENGTH2, LENGTH3,...] )
+=head2 set_word_lengths_not_allowed ( length1 [, length2, length3,...] )
 
-If C<LENGTHx> is(are) passed, this method will set word lengths 
+If C<lengthx> is(are) passed, this method will set word lengths 
 that will be skipped when creating jumble.
 The default setting will not skip any word lengths. 
-A hash containing all deny values is returned. 
-Note: Deny none is designated by empty hash.
+Note: Skip none is designated by empty hash.
 
 =cut
 
-sub word_length_deny {
+sub set_word_lengths_not_allowed {
     my($self) = shift;
     if(@_) { 
-        my %denied;
-        foreach my $deny( @_ ) {
-            $denied{$deny}++; 
+        my %not_allowed;
+        foreach my $length( @_ ) {
+            $not_allowed{$length}++; 
         }
-        $self->{word_length_deny} = \%denied;
+        $self->{_word_lengths_not_allowed} = \%not_allowed;
     }
-    return $self->{word_length_deny};
 }
 
 =head2 create_jumble
@@ -175,7 +188,7 @@ sub create_jumble {
     my %words;
 
     # Read dictionary and get words
-    open FH, $self->{dict} or croak "Cannot open $self->{dict}: $!";
+    open FH, $self->get_dict or croak "Cannot open $self->get_dict: $!";
     while(<FH>) {
         chomp;
         my $word = lc $_;             # Lower case all words
@@ -186,18 +199,16 @@ sub create_jumble {
         @temp_array = sort(@temp_array);
         my $key = join('', @temp_array);
 
-        # Check for word length allow
-        if( $self->{word_length_allow} ) {
-            my $allowed_ref = $self->{word_length_allow};
-            my %allowed = %$allowed_ref;
-            next unless exists $allowed{length $_};
+        # Check for word lengths allowed
+        if( $self->get_word_lengths_allowed ) {
+            my $allowed_ref = $self->get_word_lengths_allowed;
+            next unless exists $allowed_ref->{length $_};
         }
 
-        # Check for word length deny 
-        if( $self->{word_length_deny} ) {
-            my $denied_ref = $self->{word_length_deny};
-            my %denied = %$denied_ref;
-            next if exists $denied{length $_};
+        # Check for word lengths not allowed
+        if( $self->get_word_lengths_not_allowed ) {
+            my $not_allowed_ref = $self->get_word_lengths_not_allowed;
+            next if exists $not_allowed_ref->{length $_};
         }
 
         # perlreftut is your friend
@@ -219,8 +230,7 @@ sub create_jumble {
 
 
     # Get random words for jumble
-    for (1..$self->{num_words}) {
-
+    for (1..$self->get_num_words) {
             my $el = $unique_words[rand @unique_words];
             redo if $el =~ /(\w)\1+/;  # No words like ii, ooo or aaa
             push(@jumble, $el);
@@ -233,7 +243,6 @@ sub create_jumble {
     }
 
     return @jumble_out;
-
 
 }
 
@@ -273,7 +282,6 @@ sub jumble_word {
     }
 
     return $jumbled_word;
-
 }
 
 =head2 solve_word ( WORD )
@@ -284,7 +292,6 @@ Returns list of solved words.
 =cut
 
 sub solve_word {
-
     my($self) = shift;
     my @good_words;
    
@@ -299,7 +306,7 @@ sub solve_word {
     $self->{key} = join('', @temp_array);
 
     # Read dictionary and get words same length as $self->{word}
-    open FH, $self->{dict} or croak "Cannot open $self->{dict}: $!";
+    open FH, $self->get_dict or croak "Cannot open $self->get_dict: $!";
     while(<FH>) {
         chomp;
         my $word = lc $_;             # Lower case all words
@@ -314,7 +321,6 @@ sub solve_word {
         if ($self->{key} eq $key) {
             push @good_words, $word;
         }
-       
     }
     close FH;
 
@@ -331,7 +337,6 @@ Returns list of solved words.
 =cut
 
 sub solve_crossword {
-
     my($self) = shift;
     my @good_words;
    
@@ -345,7 +350,7 @@ sub solve_crossword {
     ($self->{word_regex} = $self->{word}) =~ s/\?/\\w{1}/g;
 
     # Read dictionary and get all words same length as $self->{word}
-    open FH, $self->{dict} or croak "Cannot open $self->{dict}: $!";
+    open FH, $self->get_dict or croak "Cannot open $self->get_dict: $!";
     while(<FH>) {
         chomp;
         my $word = lc $_;             # Lower case all words
@@ -355,13 +360,39 @@ sub solve_crossword {
         if ($word =~ $self->{word_regex}) {
             push @good_words, $word;
         }
-       
     }
     close FH;
 
     return @good_words;
 }
 
+### autoloaded methods ###
+# get_num_words, get_dict
+# set_num_words, set_dict
+# set_word_lengths_allowed, set_word_lengths_not_allowed
+
+sub AUTOLOAD {
+    no strict "refs";
+    my ( $self, $newval ) = @_;
+
+    # Was it a get_... method?
+    if ( $AUTOLOAD =~ /.*::get(_\w+)/ && $self->_accessible( $1, 'read' ) ) {
+        my $attr_name = $1;
+        *{$AUTOLOAD} = sub { return $_[0]->{$attr_name} };
+        return $self->{$attr_name};
+    }
+
+    # Was it a set_... method?
+    if ( $AUTOLOAD =~ /.*::set(_\w+)/ && $self->_accessible( $1, 'write' ) ) {
+        my $attr_name = $1;
+        *{$AUTOLOAD} = sub { $_[0]->{$attr_name} = $_[1]; return };
+        $self->{$1} = $newval;
+        return;
+    }
+
+    # Must have been a mistake then
+    croak "No such method: $AUTOLOAD";
+}
 
 1;
 
