@@ -1,14 +1,76 @@
-# Copyright (c) 2001-2003 Douglas Sparling. All rights reserved. 
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
-
 package Games::Jumble;
 
+use warnings;
 use strict;
 use Carp;
-use vars qw($VERSION);
 
-$VERSION = '0.07';
+=head1 NAME
+
+Games::Jumble - Create and solve Jumble word puzzles.
+
+=head1 VERSION
+
+Version 0.08
+
+=cut
+
+our $VERSION = '0.08';
+
+=head1 SYNOPSIS
+
+    use Games::Jumble;
+
+    my $jumble = Games::Jumble->new();
+    $jumble->num_words(6);
+    $jumble->word_length_allow(5,6);
+    $jumble->dict('/home/doug/crossword_dict/unixdict.txt');
+
+    my @jumble = $jumble->create_jumble;
+
+    foreach my $word (@jumble) {
+        print "$word\n";
+    }
+
+    # Solve jumbled word
+    my @good_words = $jumble->solve_word('rta');
+
+    if (@good_words) {
+        foreach my $good_word (@good_words) {
+            print "$good_word\n";
+        }
+    } else {
+        print "No words found\n";
+    }
+
+    # Create jumbled word
+    my $word = 'camel';
+    my $jumbled_word = $jumble->jumble_word($word);
+
+    print "$jumbled_word ($word)\n";
+
+=head1 DESCRIPTION
+
+C<Games::Jumble> is used to create and solve Jumble word puzzles.
+
+Currently C<Games::Jumble> will create random five- and six-letter
+jumbled words from dictionary. Future versions of C<Games::Jumble> will
+allow user to create custom jumbles by using a user defined word file
+with words of any length.
+Individual words of any length may be jumbled by using the 
+C<jumble_word()> method.
+
+Default number of words is 5.
+Default dictionary is '/usr/dict/words'.
+Dictionary file must contain one word per line.
+
+=cut
+
+=head2 new ( [NUMBER_OF_WORDS] );
+
+This is the constructor for a new Games::Jumble object. 
+If C<NUMBER_OF_WORDS> is passed, this method will set the number of words for the puzzle.
+
+=cut
 
 sub new {
     my $proto = shift;
@@ -26,17 +88,44 @@ sub new {
     return $self;
 }
 
+=head2 num_words ( NUMBER_OF_WORDS )
+
+If C<NUMBER_OF_WORDS> is passed, this method will set the number of words for the puzzle.
+The default value is 5. 
+The number of words is returned. 
+
+=cut
+
 sub num_words {
     my($self) = shift;
     if(@_) { $self->{num_words} = shift }
     return $self->{num_words};
 }
 
+=head2 dict ( PATH_TO_DICT )
+
+If C<PATH_TO_DICT> is passed, this method will set the path to 
+the dictionary file. Dictionary file must have one word per line.
+The default value is /usr/dict/words. 
+The path to the dictionary file is returned. 
+
+=cut
+
 sub dict {
     my($self) = shift;
     if(@_) { $self->{dict} = shift }
     return $self->{dict};
 }
+
+=head2 word_length_allow ( LENGTH1 [, LENGTH2, LENGTH3,...] )
+
+If C<LENGTHx> is(are) passed, this method will set word lengths 
+that will be used when creating jumble.  
+The default setting will use all word lengths. 
+A hash containing all allow values is returned. 
+Note: Allow all is designated by empty hash.
+
+=cut
 
 sub word_length_allow {
     my($self) = shift;
@@ -50,6 +139,16 @@ sub word_length_allow {
     return $self->{word_length_allow};
 }
 
+=head2 word_length_deny ( LENGTH1 [, LENGTH2, LENGTH3,...] )
+
+If C<LENGTHx> is(are) passed, this method will set word lengths 
+that will be skipped when creating jumble.
+The default setting will not skip any word lengths. 
+A hash containing all deny values is returned. 
+Note: Deny none is designated by empty hash.
+
+=cut
+
 sub word_length_deny {
     my($self) = shift;
     if(@_) { 
@@ -62,6 +161,11 @@ sub word_length_deny {
     return $self->{word_length_deny};
 }
 
+=head2 create_jumble
+
+This method creates the jumble.
+
+=cut
 
 sub create_jumble {
 
@@ -133,6 +237,13 @@ sub create_jumble {
 
 }
 
+=head2 jumble_word ( WORD )
+
+This method will create a jumbled word.
+Returns scalar containing jumbled word.
+
+=cut
+
 sub jumble_word {
 
     my($self) = shift;
@@ -164,6 +275,13 @@ sub jumble_word {
     return $jumbled_word;
 
 }
+
+=head2 solve_word ( WORD )
+
+This method will solve a jumbled word.
+Returns list of solved words.
+
+=cut
 
 sub solve_word {
 
@@ -203,6 +321,15 @@ sub solve_word {
     return @good_words;
 }
 
+=head2 solve_crossword ( WORD )
+
+This method will solve an incomplete word as needed for a crossword.
+WORD format: 'c?m?l' where question marks are used a placeholders
+for unknown letter.
+Returns list of solved words.
+
+=cut
+
 sub solve_crossword {
 
     my($self) = shift;
@@ -238,148 +365,57 @@ sub solve_crossword {
 
 1;
 
-__END__
+=head1 AUTHOR
 
-=head1 NAME
+Doug Sparling, C<< <usr_bin_perl at yahoo.com> >>
 
-Games::Jumble - Create and solve Jumble word puzzles.
+=head1 BUGS
 
-=head1 SYNOPSIS
+Please report any bugs or feature requests to
+C<bug-games-jumble at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Games-Jumble>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
 
-  use Games::Jumble;
+=head1 SUPPORT
 
-  my $jumble = Games::Jumble->new();
-  $jumble->num_words(6);
-  $jumble->word_length_allow(5,6);
-  $jumble->dict('/home/doug/crossword_dict/unixdict.txt');
+You can find documentation for this module with the perldoc command.
 
-  my @jumble = $jumble->create_jumble;
+    perldoc Games::Jumble
 
-  foreach my $word (@jumble) {
-    print "$word\n";
-  }
-
-  # Solve jumbled word
-  my @good_words = $jumble->solve_word('rta');
-
-  if (@good_words) {
-    foreach my $good_word (@good_words) {
-      print "$good_word\n";
-    }
-  } else {
-    print "No words found\n";
-  }
-
-  # Create jumbled word
-  my $word = 'camel';
-  my $jumbled_word = $jumble->jumble_word($word);
-
-  print "$jumbled_word ($word)\n";
-
-
-=head1 DESCRIPTION
-
-C<Games::Jumble> is used to create and solve Jumble word puzzles.
-
-Currently C<Games::Jumble> will create random five- and six-letter
-jumbled words from dictionary. Future versions of C<Games::Jumble> will
-allow user to create custom jumbles by using a user defined word file
-with words of any length.
-Individual words of any length may be jumbled by using the 
-C<jumble_word()> method.
-
-Default number of words is 5.
-Default dictionary is '/usr/dict/words'.
-Dictionary file must contain one word per line.
-
-=head1 OVERVIEW
+You can also look for information at:
 
 =over 4
 
-=item TODO
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Games-Jumble>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Games-Jumble>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Games-Jumble>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Games-Jumble>
 
 =back
 
-=head1 CONSTRUCTOR
-
-=over 4
-
-=item new ( [NUMBER_OF_WORDS] );
-
-This is the constructor for a new Games::Jumble object. 
-If C<NUMBER_OF_WORDS> is passed, this method will set the number of words for the puzzle.
-
-=back
-
-=head1 METHODS
-
-=over 4
-
-=item num_words ( NUMBER_OF_WORDS )
-
-If C<NUMBER_OF_WORDS> is passed, this method will set the number of words for the puzzle.
-The default value is 5. 
-The number of words is returned. 
-
-=item dict ( PATH_TO_DICT )
-
-If C<PATH_TO_DICT> is passed, this method will set the path to 
-the dictionary file. Dictionary file must have one word per line.
-The default value is /usr/dict/words. 
-The path to the dictionary file is returned. 
-
-=item word_length_allow ( LENGTH1 [, LENGTH2, LENGTH3,...] )
-
-If C<LENGTHx> is(are) passed, this method will set word lengths 
-that will be used when creating jumble.  
-The default setting will use all word lengths. 
-A hash containing all allow values is returned. 
-Note: Allow all is designated by empty hash.
-
-=item word_length_deny ( LENGTH1 [, LENGTH2, LENGTH3,...] )
-
-If C<LENGTHx> is(are) passed, this method will set word lengths 
-that will be skipped when creating jumble.
-The default setting will not skip any word lengths. 
-A hash containing all deny values is returned. 
-Note: Deny none is designated by empty hash.
-
-=item create_jumble ( )
-
-This method creates the jumble.
-Returns list containing words (normal and jumbled).
-
-=item jumble_word ( WORD )
-
-This method will create a jumbled word.
-Returns scalar containing jumbled word.
-
-=item solve_word ( WORD )
-
-This method will solve a jumbled word.
-Returns list of solved words.
-
-=item solve_crossword ( WORD )
-
-This method will solve an incomplete word as needed for a crossword.
-WORD format: 'c?m?l' where question marks are used a placeholders
-for unknown letter.
-Returns list of solved words.
-
-=back
-
-=head1 CREDITS
+=head1 ACKNOWLEDGEMENTS
 
 Tim Maher for pointing out some outdated documentation in the Synopsis.
 
-=head1 AUTHOR
+=head1 COPYRIGHT & LICENSE
 
-Doug Sparling, doug@dougsparling.com
+Copyright 2001-2007 Doug Sparling, all rights reserved.
 
-=head1 COPYRIGHT
-
-Copyright (c) 2001-2003 Douglas Sparling. All rights reserved. This program is 
-free software; you can redistribute it and/or modify it under the same terms
-as Perl itself.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
 
 =cut
+
+1; # End of Games::Jumble
